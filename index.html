@@ -188,7 +188,7 @@
             let pool = faraidPool;
             if (pool <= 0) return [];
 
-            let spouseShare = 0; let motherShare = 0; let fatherShare = 0;
+            let spouseShare = 0; let motherShare = 0; let fatherShare = 0; let daughtersShare = 0;
             
             if (hasSpouse) {
               if (spouseGender === 'isteri') {
@@ -201,26 +201,56 @@
             }
 
             if (parentsAlive > 0) {
-              const parentShare = (numSons > 0 || numDaughters > 0) ? 1/6 : (parentsAlive === 2 && numSons === 0 && numDaughters === 0 ? "Asabah" : 1/6);
+              let parentShareCalc = (numSons > 0 || numDaughters > 0) ? 1/6 : 1/3;
               if (parentsAlive === 2 || parentsAlive === 1) {
-                  motherShare = 1/6;
+                  motherShare = parentShareCalc;
                   const parentName = parentsAlive === 1 ? 'Ibu/Bapa' : 'Ibu';
                   distribution.push({ name: parentName, amount: pool * motherShare, percent: motherShare * 100 });
               }
               if (parentsAlive === 2) {
-                  fatherShare = 1/6;
+                  fatherShare = (numSons > 0 || numDaughters > 0) ? 1/6 : 0;
                   distribution.push({ name: 'Bapa', amount: pool * fatherShare, percent: fatherShare * 100 });
               }
             }
 
-            let remainingFraction = 1 - spouseShare - motherShare - fatherShare;
+            if (numSons === 0 && numDaughters > 0) {
+              daughtersShare = numDaughters === 1 ? 1/2 : 2/3;
+              distribution.push({ name: `Anak Perempuan (${numDaughters} orang)`, amount: pool * daughtersShare, percent: daughtersShare * 100 });
+            }
+
+            let allocatedFraction = spouseShare + motherShare + fatherShare + daughtersShare;
+            
+            if (allocatedFraction > 1) {
+              distribution = distribution.map(d => {
+                let newFraction = (d.percent / 100) / allocatedFraction;
+                return { ...d, amount: pool * newFraction, percent: newFraction * 100 };
+              });
+              allocatedFraction = 1;
+            }
+
+            let remainingFraction = 1 - allocatedFraction;
             let remainingAmount = pool * remainingFraction;
 
-            if (numSons > 0 || numDaughters > 0) {
-              const totalParts = (numSons * 2) + numDaughters;
-              const valuePerPart = remainingAmount / totalParts;
-              if (numSons > 0) distribution.push({ name: `Anak Lelaki (${numSons} orang)`, amount: valuePerPart * 2 * numSons, percent: (valuePerPart * 2 * numSons / pool) * 100 });
-              if (numDaughters > 0) distribution.push({ name: `Anak Perempuan (${numDaughters} orang)`, amount: valuePerPart * numDaughters, percent: (valuePerPart * numDaughters / pool) * 100 });
+            if (remainingFraction > 0.0001) {
+              if (numSons > 0) {
+                const totalParts = (numSons * 2) + numDaughters;
+                const valuePerPart = remainingAmount / totalParts;
+                distribution.push({ name: `Anak Lelaki (${numSons} orang)`, amount: valuePerPart * 2 * numSons, percent: (valuePerPart * 2 * numSons / pool) * 100 });
+                if (numDaughters > 0) {
+                  distribution.push({ name: `Anak Perempuan (${numDaughters} orang)`, amount: valuePerPart * numDaughters, percent: (valuePerPart * numDaughters / pool) * 100 });
+                }
+              } else if (parentsAlive === 2) {
+                let fatherIndex = distribution.findIndex(d => d.name === 'Bapa');
+                if(fatherIndex !== -1) {
+                    distribution[fatherIndex].amount += remainingAmount;
+                    distribution[fatherIndex].percent += (remainingFraction * 100);
+                    distribution[fatherIndex].name = 'Bapa (Fardu + Asabah)';
+                } else {
+                    distribution.push({ name: 'Bapa (Asabah)', amount: remainingAmount, percent: remainingFraction * 100 });
+                }
+              } else {
+                distribution.push({ name: 'Baitulmal / Waris Lain (Adik Beradik)', amount: remainingAmount, percent: remainingFraction * 100 });
+              }
             }
 
             return distribution;
