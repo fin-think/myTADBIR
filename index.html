@@ -39,7 +39,7 @@
         import { 
           Landmark, ShieldCheck, HeartHandshake, BookOpen, 
           TrendingUp, Calculator, PieChart, Wallet, User, 
-          AlertTriangle, Heart, Lightbulb, Clock, FileText, ArrowRight
+          AlertTriangle, Heart, Lightbulb, Clock, FileText, ArrowRight, Printer, MessageCircle
         } from 'lucide-react';
 
         // --- Komponen Bantuan (UI) ---
@@ -84,6 +84,7 @@
         // --- Komponen Utama ---
         function App() {
           const [activeTab, setActiveTab] = useState(1);
+          const [showReport, setShowReport] = useState(false);
 
           // === STATE PENGURUSAN DATA ===
           const [userGender, setUserGender] = useState('lelaki');
@@ -166,7 +167,6 @@
           // Opsyen C: Downsize lifestyle
           const sustainableMonthlyExpense = yearsInRetirement > 0 ? (bakiUntukBersara / (yearsInRetirement * 12)) : 0;
 
-
           // --- PENGIRAAN FARAID & HARTA ---
           const totalZakatable = asb + th + unitTrust + tunai + emas; 
           const zakatPayable = totalZakatable * 0.025;
@@ -245,6 +245,136 @@
           ];
 
           const formatRM = (val) => new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR', maximumFractionDigits: 0 }).format(val);
+
+          // Fungsi untuk tukar tab & scroll ke atas
+          const handleNextTab = () => {
+            if (activeTab < 6) {
+              setActiveTab(activeTab + 1);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+
+          const handlePrevTab = () => {
+            if (activeTab > 1) {
+              setActiveTab(activeTab - 1);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+
+          if (showReport) {
+            return (
+              <div className="min-h-screen bg-white text-slate-800 p-8 md:p-12 font-sans max-w-4xl mx-auto">
+                <div className="print:hidden flex flex-col md:flex-row justify-between items-center gap-4 mb-8 bg-slate-100 p-4 rounded-xl">
+                  <button onClick={() => setShowReport(false)} className="px-6 py-2 bg-slate-300 hover:bg-slate-400 text-slate-800 rounded-lg font-bold transition-colors w-full md:w-auto">
+                    Kembali Ke Aplikasi
+                  </button>
+                  <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                    <button onClick={() => window.print()} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold flex justify-center items-center gap-2 transition-colors">
+                      <Printer size={18} /> Simpan / Cetak PDF
+                    </button>
+                    <a href="https://wa.me/60129443846?text=Salam,%20saya%20ingin%20berbincang%20berkenaan%20laporan%20myTADBIR%20saya." target="_blank" rel="noopener noreferrer" className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold flex justify-center items-center gap-2 transition-colors">
+                      <MessageCircle size={18} /> WhatsApp Perunding
+                    </a>
+                  </div>
+                </div>
+
+                <div className="border-b-2 border-emerald-800 pb-6 mb-8 text-center">
+                  <h1 className="text-3xl font-black text-emerald-800 flex items-center justify-center gap-3 mb-2">
+                    <Landmark size={32} className="text-amber-500" /> myTADBIR
+                  </h1>
+                  <p className="text-lg text-slate-600 font-semibold">Laporan Ringkasan Perancangan Kewangan & Harta Islam</p>
+                </div>
+
+                <div className="space-y-8">
+                  <section>
+                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">1. Profil & Kedudukan Kewangan</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div><span className="text-slate-500 block text-xs">Umur / Jantina:</span> <span className="font-semibold text-base">{age} Tahun ({userGender})</span></div>
+                      <div><span className="text-slate-500 block text-xs">Tanggungan Anak:</span> <span className="font-semibold text-base">{childrenData.length} Orang</span></div>
+                      <div><span className="text-slate-500 block text-xs">Pendapatan Tahunan:</span> <span className="font-semibold text-base">{formatRM(annualIncome)}</span></div>
+                      <div><span className="text-slate-500 block text-xs">Perbelanjaan Bulanan:</span> <span className="font-semibold text-base">{formatRM(currentExpenses)}</span></div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">2. Ringkasan Harta & Hutang (Net Worth)</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center md:text-left">
+                        <p className="text-slate-500 mb-1">Jumlah Keseluruhan Aset</p>
+                        <p className="font-bold text-xl text-emerald-600">{formatRM(totalLiquidAssets + totalPhysicalAssets)}</p>
+                      </div>
+                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center md:text-left">
+                        <p className="text-slate-500 mb-1">Jumlah Hutang & Liabiliti</p>
+                        <p className="font-bold text-xl text-red-600">{formatRM(totalDebts)}</p>
+                      </div>
+                      <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200 text-center md:text-left">
+                        <p className="text-emerald-800 font-semibold mb-1">Nilai Harta Bersih</p>
+                        <p className="font-black text-2xl text-emerald-700">{formatRM(currentNetWorth)}</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">3. Unjuran Persaraan & Penyucian Harta</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                      <div className="bg-white border border-slate-200 rounded-lg p-4">
+                        <h3 className="font-bold text-slate-700 mb-3 border-b pb-2">Status Dana Persaraan</h3>
+                        <ul className="space-y-3">
+                          <li className="flex justify-between"><span className="text-slate-500">Umur Sasaran Bersara:</span> <span className="font-semibold">{retireAge} Tahun</span></li>
+                          <li className="flex justify-between"><span className="text-slate-500">Ketahanan Dana:</span> <span className="font-semibold">{yearsItWillLast.toFixed(1)} Tahun</span></li>
+                          <li className="flex justify-between"><span className="text-slate-500">Defisit Dana (Kekurangan):</span> <span className={`font-bold ${retirementShortfall > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{retirementShortfall > 0 ? formatRM(retirementShortfall) : 'Tiada'}</span></li>
+                        </ul>
+                      </div>
+                      <div className="bg-white border border-slate-200 rounded-lg p-4">
+                        <h3 className="font-bold text-slate-700 mb-3 border-b pb-2">Tanggungjawab Zakat Semasa</h3>
+                        <ul className="space-y-3">
+                          <li className="flex justify-between"><span className="text-slate-500">Harta Tunai Layak Zakat:</span> <span className="font-semibold">{formatRM(totalZakatable)}</span></li>
+                          <li className="flex justify-between"><span className="text-slate-500">Zakat Wajib Ditunaikan (2.5%):</span> <span className="font-bold text-emerald-600">{formatRM(zakatPayable)}</span></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">4. Analisis Pusaka, Faraid & Pelindungan Waris</h2>
+                    
+                    <div className="bg-amber-50 p-5 rounded-lg border border-amber-200 text-sm mb-5">
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-2">
+                        <span className="text-amber-900 font-bold text-base">Jurang Penggantian Pendapatan Waris (10 Tahun):</span>
+                        <span className={`font-black text-xl ${incomeProtectionGap > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                          {incomeProtectionGap > 0 ? formatRM(incomeProtectionGap) + " (Defisit)" : "Mencukupi"}
+                        </span>
+                      </div>
+                      <p className="text-slate-600 text-xs mt-1">*(Dikira berdasarkan keperluan belanja keluarga untuk 10 tahun, ditolak dengan Tuntutan Harta Sepencarian, Faraid Pasangan & Pampasan Takaful Sedia Ada)*</p>
+                    </div>
+                    
+                    <div className="text-sm">
+                      <p className="font-bold text-slate-800 mb-3">Tindakan Mitigasi & Pengurusan Harta Islam Yang Disyorkan:</p>
+                      <ul className="list-disc pl-5 space-y-2 text-slate-700">
+                        {incomeProtectionGap > 0 && <li>Sediakan dana pantas melalui pampasan <strong className="text-slate-900">Hibah Takaful</strong> bernilai minimum <strong>RM{formatRM(incomeProtectionGap)}</strong> untuk waris anda segera.</li>}
+                        {totalLiquidAssets > 0 && <li>Wujudkan <strong className="text-slate-900">Amanah Tunai (Cash Trust)</strong> bagi mengelakkan akaun bank dibekukan, dan memudahkan waris mengeluarkan tunai pantas.</li>}
+                        {hasSpouse && <li>Daftarkan <strong className="text-slate-900">Deklarasi Harta Sepencarian</strong> secara rasmi untuk menjamin pemilikan ({sepencarianPercent}%) aset fizikal oleh isteri/suami anda.</li>}
+                        <li>Sediakan <strong>Wasiat Pentadbir</strong> untuk memastikan proses penyelesaian hutang tertunggak (RM{formatRM(totalDebts)}) berjalan lancar.</li>
+                      </ul>
+                    </div>
+                  </section>
+                </div>
+
+                <div className="mt-12 pt-8 border-t border-slate-200 text-center">
+                  <p className="text-sm font-semibold text-slate-800 mb-2">Hubungi Perunding Kewangan Anda</p>
+                  <p className="text-xs text-slate-500 mb-6 print:mb-2 max-w-2xl mx-auto">Laporan ini dijana oleh myTADBIR dan merupakan anggaran asas kedudukan perancangan harta anda. Sila berhubung dengan perunding yang sah untuk rundingan yang lebih komprehensif.</p>
+                  
+                  <a href="https://wa.me/60129443846?text=Salam,%20saya%20ingin%20berbincang%20berkenaan%20laporan%20myTADBIR%20saya." target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-green-500 hover:bg-green-600 transition-colors text-white font-bold rounded-full shadow-lg text-base decoration-transparent print:hidden">
+                    <MessageCircle size={22} /> WhatsApp Sekarang: 012-9443846
+                  </a>
+                  
+                  <div className="hidden print:block text-slate-800 font-bold text-lg mt-4 p-4 border-2 border-slate-800 rounded-lg inline-block">
+                    No. Telefon Perunding: 012-9443846
+                  </div>
+                </div>
+              </div>
+            );
+          }
 
           return (
             <div className="min-h-screen bg-slate-50 font-sans pb-12">
@@ -511,9 +641,9 @@
                               </p>
                             </div>
                             
-                            {/* Opsyen C */}
+                            {/* Opsyen B */}
                             <div className="p-5 bg-amber-50 border border-amber-200 shadow-sm rounded-xl relative overflow-hidden">
-                              <div className="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg uppercase tracking-wider">Opsyen C</div>
+                              <div className="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg uppercase tracking-wider">Opsyen B</div>
                               <h4 className="font-bold text-amber-900 mb-1 flex items-center gap-2"><Wallet size={18} /> Penyelarasan Gaya Hidup (Downsize)</h4>
                               <div className="my-3">
                                 <span className="text-3xl font-black text-amber-600">{formatRM(sustainableMonthlyExpense)}</span>
@@ -524,12 +654,12 @@
                               </p>
                             </div>
 
-                            {/* Opsyen B & D */}
+                            {/* Opsyen C & D */}
                             <div className="col-span-1 md:col-span-2 p-4 bg-slate-50 border border-slate-200 rounded-xl mt-2 flex flex-col md:flex-row gap-4">
                               <div className="flex-1 flex items-start gap-3">
                                 <PieChart className="text-blue-500 shrink-0 mt-1" size={20} />
                                 <div>
-                                  <h4 className="font-bold text-slate-700 text-sm">Opsyen B: Tingkatkan Pulangan Pelaburan (ROI)</h4>
+                                  <h4 className="font-bold text-slate-700 text-sm">Opsyen C: Tingkatkan Pulangan Pelaburan (ROI)</h4>
                                   <p className="text-xs text-slate-600 mt-1">Alihkan sebahagian aset ke instrumen berpotensi tinggi (seperti ETF, Saham patuh shariah) untuk atasi inflasi. *Tertakluk profil risiko anda.</p>
                                 </div>
                               </div>
@@ -833,6 +963,51 @@
                     </div>
                   )}
                 </div>
+
+                {/* --- BUTANG NAVIGASI HALAMAN BAWAH --- */}
+                <div className="mt-8 flex justify-between items-center border-t border-slate-200 pt-6">
+                  {activeTab > 1 ? (
+                    <button
+                      onClick={handlePrevTab}
+                      className="px-6 py-3 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-800 border border-slate-300 font-bold rounded-xl transition-colors shadow-sm"
+                    >
+                      Kembali
+                    </button>
+                  ) : (
+                    <div></div> /* Empty div untuk spacing bila butang kembali tiada */
+                  )}
+
+                  {activeTab < 6 ? (
+                    <button
+                      onClick={handleNextTab}
+                      className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm ml-auto"
+                    >
+                      Seterusnya <ArrowRight size={20} />
+                    </button>
+                  ) : (
+                    <div className="flex flex-col md:flex-row gap-3 ml-auto w-full md:w-auto mt-4 md:mt-0">
+                      <button
+                        onClick={() => {
+                          setShowReport(true);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm w-full md:w-auto"
+                      >
+                        <Printer size={20} /> Jana Laporan PDF
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveTab(1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-colors shadow-sm w-full md:w-auto text-center"
+                      >
+                        Mula Semula
+                      </button>
+                    </div>
+                  )}
+                </div>
+
               </main>
               
               <footer className="max-w-6xl mx-auto mt-12 text-center text-slate-500 text-sm">
